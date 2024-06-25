@@ -25,6 +25,7 @@ struct Car
     string model;
     int cost = 0;
     int price = 0;
+
 };
 
 struct Sale
@@ -35,7 +36,10 @@ struct Sale
 
     string automobile;
     string date_sale;
+    
     int real_price = 0;
+
+    int total_cost_whan = 0;
 };
 
 vector<Workmate> workmates;
@@ -43,17 +47,23 @@ vector<Car> cars;
 vector<Sale> sales;
 
 void load();
+
 void reports();
+
 void information();
+
 void add_workmate();
 void add_car();
 void add_sale();
+
 void delete_workmate();
 void delete_car();
 void delete_sale();
+
 void save();
+
 bool MyDate(const string& date);
-string FullName(const string& name, const string& surname, const string& father_name);
+
 
 int main()
 {
@@ -131,7 +141,7 @@ void load()
     if (sales_file.is_open())
     {
         Sale sale;
-        while (sales_file >> sale.person_name >> sale.person_surname >> sale.person_father_name >> sale.automobile >> sale.date_sale >> sale.real_price)
+        while (sales_file >> sale.person_name >> sale.person_surname >> sale.person_father_name >> sale.automobile >> sale.date_sale >> sale.real_price >> sale.total_cost_whan)
         {
             sales.push_back(sale);
         }
@@ -162,8 +172,8 @@ void reports()
         cout << "\nВаш вибір: ";
         cin >> option;
 
-            switch (option)
-            {
+        switch (option)
+        {
             case 1:
             {
                 cout << "Повна інформація про співробітників фірми:\n";
@@ -187,7 +197,7 @@ void reports()
                 cout << "Повна інформація про продажі:\n";
                 for (const auto& sale : sales)
                 {
-                    cout << "Співробітник: " << sale.person_name << " " << sale.person_surname << " " << sale.person_father_name << ", Автомобіль: " << sale.automobile << ", Дата продажу: " << sale.date_sale << ", Реальна ціна продажу: " << sale.real_price << endl;
+                    cout << "Співробітник: " << sale.person_surname << " " << sale.person_name << " " << sale.person_father_name << ", Автомобіль: " << sale.automobile << ", Дата продажу: " << sale.date_sale << ", Реальна ціна продажу: " << sale.real_price << endl;
                 }
                 break;
             }
@@ -204,7 +214,7 @@ void reports()
                 {
                     if (sale.date_sale == date)
                     {
-                        cout << "Співробітник: " << sale.person_name << " " << sale.person_surname << " " << sale.person_father_name << ", Автомобіль: " << sale.automobile << ", Реальна ціна продажу: " << sale.real_price << endl;
+                        cout << "Співробітник: " << sale.person_surname << " " << sale.person_name << " " << sale.person_father_name << ", Автомобіль: " << sale.automobile << ", Реальна ціна продажу: " << sale.real_price << endl;
                     }
                 }
                 break;
@@ -227,30 +237,31 @@ void reports()
                 {
                     if (sale.date_sale >= start_date && sale.date_sale <= end_date)
                     {
-                        cout << "Співробітник: " << sale.person_name << " " << sale.person_surname << " " << sale.person_father_name << ", Автомобіль: " << sale.automobile << ", Реальна ціна продажу: " << sale.real_price << endl;
+                        cout << "Співробітник: " << sale.person_surname << " " << sale.person_name << " " << sale.person_father_name << ", Автомобіль: " << sale.automobile << ", Реальна ціна продажу: " << sale.real_price << endl;
                     }
                 }
                 break;
             }
             case 6: {
                 int name_index = 0;
-                cout << "Список cпівробітників:\n";
+                cout << "Список співробітників:\n";
                 for (int i = 0; i < workmates.size(); ++i) {
-                    cout << "[" << i + 1 << "] " << workmates[i].name << " " << workmates[i].surname << " " << workmates[i].father_name << endl;
+                    cout << "[" << i + 1 << "] " << workmates[i].surname << " " << workmates[i].name << " " << workmates[i].father_name << endl;
                 }
 
                 cout << "Введіть номер співробітника, щоб переглянути його продажі: ";
                 cin >> name_index;
                 name_index--;
 
-                bool foundEmployee = false;
-                // Проверяем, что name_index в пределах корректного диапазона
+                bool foundSales = false;
                 if (name_index >= 0 && name_index < workmates.size()) {
-                    cout << "Продажі для " << workmates[name_index].name << " " << workmates[name_index].surname << ":\n";
+                    cout << "Продажі для " << workmates[name_index].surname << " " << workmates[name_index].name << " " << workmates[name_index].father_name << ":\n";
                     for (const auto& sale : sales) {
-                        if (sale.person_name == workmates[name_index].name) {
+                        if (workmates[name_index].surname == sale.person_name &&
+                            workmates[name_index].name == sale.person_surname &&
+                            workmates[name_index].father_name == sale.person_father_name) {
                             cout << "Автомобіль: " << sale.automobile << ", Дата продажу: " << sale.date_sale << ", Реальна ціна продажу: " << sale.real_price << endl;
-                            foundEmployee = true;
+                            foundSales = true;
                         }
                     }
                 }
@@ -258,7 +269,7 @@ void reports()
                     cout << "Неправильно введено номер працівника." << endl;
                 }
 
-                if (!foundEmployee) {
+                if (!foundSales) {
                     cout << "Вибраний співробітник не має продажів." << endl;
                 }
 
@@ -277,49 +288,43 @@ void reports()
                     cin >> end_date;
                 } while (!MyDate(end_date));
 
-                cout << "Найпопулярніший автомобіль за вказаний період часу:\n";
+                cout << "Найпопулярніші автомобілі за вказаний період часу:\n";
 
                 vector<string> automobiles;
                 vector<int> sales_count;
 
-                for (const auto& sale : sales)
-                {
-                    if (sale.date_sale >= start_date && sale.date_sale <= end_date)
-                    {
+                for (const auto& sale : sales) {
+                    if (sale.date_sale >= start_date && sale.date_sale <= end_date) {
                         int i;
-                        for (i = 0; i < automobiles.size(); ++i)
-                        {
-                            if (automobiles[i] == sale.automobile)
-                            {
+                        for (i = 0; i < automobiles.size(); ++i) {
+                            if (automobiles[i] == sale.automobile) {
                                 sales_count[i]++;
                                 break;
                             }
                         }
-                        if (i == automobiles.size())
-                        {
+                        if (i == automobiles.size()) {
                             automobiles.push_back(sale.automobile);
                             sales_count.push_back(1);
                         }
                     }
                 }
 
-                string popular_car = "";
                 int max_sales = 0;
-                for (int i = 0; i < automobiles.size(); ++i)
-                {
-                    if (sales_count[i] > max_sales)
-                    {
+                for (int i = 0; i < automobiles.size(); ++i) {
+                    if (sales_count[i] > max_sales) {
                         max_sales = sales_count[i];
-                        popular_car = automobiles[i];
                     }
                 }
 
-                if (popular_car != "")
-                {
-                    cout << "Автомобіль: " << popular_car << ", Кількість продажів: " << max_sales << endl;
+                if (max_sales > 0) {
+                    cout << "Автомобілі з максимальною кількістю продажів (" << max_sales << " продажів):\n";
+                    for (int i = 0; i < automobiles.size(); ++i) {
+                        if (sales_count[i] == max_sales) {
+                            cout << "Автомобіль: " << automobiles[i] << endl;
+                        }
+                    }
                 }
-                else
-                {
+                else {
                     cout << "За вказаний період часу продажі не здійснювалися.\n";
                 }
                 break;
@@ -329,98 +334,119 @@ void reports()
             {
                 string start_date, end_date;
                 do {
-                    cout << "Введіть початкову дату періоду (YYYY-MM-DD): ";
+                    cout << "Введите начальную дату периода (YYYY-MM-DD): ";
                     cin >> start_date;
                 } while (!MyDate(start_date));
 
                 do {
-                    cout << "Введіть кінцеву дату періоду (YYYY-MM-DD): ";
+                    cout << "Введите конечную дату периода (YYYY-MM-DD): ";
                     cin >> end_date;
                 } while (!MyDate(end_date));
 
-                cout << "Найуспішніший співробітник за вказаний період часу:\n";
+                cout << "Наиболее успешные сотрудники за указанный период времени:\n";
 
                 vector<string> employee_names;
-                vector<int> sales_count;
+                vector<int> sales_amounts;
 
                 for (const auto& sale : sales)
                 {
+                    // Проверяем, что дата продажи находится в заданном периоде
                     if (sale.date_sale >= start_date && sale.date_sale <= end_date)
                     {
-                        string full_name = sale.person_name + " " + sale.person_surname + " " + sale.person_father_name;
-                        int i;
-                        for (i = 0; i < employee_names.size(); ++i)
+                        string full_name = sale.person_surname + " " + sale.person_name + " " + sale.person_father_name;
+                        bool found = false;
+
+                        // Ищем сотрудника в списке employee_names
+                        for (size_t i = 0; i < employee_names.size(); ++i)
                         {
                             if (employee_names[i] == full_name)
                             {
-                                sales_count[i]++;
+                                // Вычитаем из суммы продажи цену автомобиля, найденного в списке cars
+                                for (const auto& car : cars) {
+                                    if (car.model == sale.automobile) {
+                                        sales_amounts[i] += (sale.real_price - sale.total_cost_whan);
+                                        found = true;
+                                        break;
+                                    }
+                                }
                                 break;
                             }
                         }
-                        if (i == employee_names.size())
+
+                        if (!found)
                         {
+                            // Если сотрудник не найден в списке, добавляем его и начальное значение суммы продаж
                             employee_names.push_back(full_name);
-                            sales_count.push_back(1);
+                            int sales_amount = 0;
+                            for (const auto& car : cars) {
+                                if (car.model == sale.automobile) {
+                                    sales_amount = sale.real_price - sale.total_cost_whan;
+                                    break;
+                                }
+                            }
+                            sales_amounts.push_back(sales_amount);
                         }
                     }
                 }
 
-                string top_employee = "";
-                int max_sales = 0;
-                for (int i = 0; i < employee_names.size(); ++i)
+                // Находим максимальную сумму продаж
+                int max_sales_amount = 0;
+                for (size_t i = 0; i < employee_names.size(); ++i)
                 {
-                    if (sales_count[i] > max_sales)
+                    if (sales_amounts[i] > max_sales_amount)
                     {
-                        max_sales = sales_count[i];
-                        top_employee = employee_names[i];
+                        max_sales_amount = sales_amounts[i];
                     }
                 }
 
-                if (top_employee != "")
+                // Выводим всех сотрудников с максимальной суммой продаж
+                if (max_sales_amount > 0)
                 {
-                    cout << "Співробітник: " << top_employee << ", Кількість продажів: " << max_sales << endl;
+                    cout << "Наиболее успешные сотрудники за указанный период времени:\n";
+                    for (size_t i = 0; i < employee_names.size(); ++i)
+                    {
+                        if (sales_amounts[i] == max_sales_amount)
+                        {
+                            cout << "Сотрудник: " << employee_names[i] << ", Сумма продаж: " << sales_amounts[i] << endl;
+                        }
+                    }
                 }
                 else
                 {
-                    cout << "За вказаний період часу продажі не здійснювалися.\n";
-                }
-                break;
-            }
-
-
-            case 9:
-            {
-                string start_date, end_date;
-                do {
-                    cout << "Введіть початкову дату періоду (YYYY-MM-DD): ";
-                    cin >> start_date;
-                } while (!MyDate(start_date));
-
-                do {
-                    cout << "Введіть кінцеву дату періоду (YYYY-MM-DD): ";
-                    cin >> end_date;
-                } while (!MyDate(end_date));
-
-                cout << "Сумарний прибуток за вказаний період часу:\n";
-
-                int total_profit = 0;
-                for (const auto& sale : sales)
-                {
-                    if (sale.date_sale >= start_date && sale.date_sale <= end_date)
-                    {
-                        total_profit += sale.real_price;
-                    }
+                    cout << "За указанный период времени продажи не совершались.\n";
                 }
 
-                cout << "Сумарний прибуток: " << total_profit << endl;
                 break;
             }
-            case 0:
-                break;
-            default:
-                cout << "Невірний вибір\n";
-                break;
+
+        case 9: {
+            string start_date, end_date;
+            do {
+                cout << "Введіть початкову дату періоду (YYYY-MM-DD): ";
+                cin >> start_date;
+            } while (!MyDate(start_date));
+
+            do {
+                cout << "Введіть кінцеву дату періоду (YYYY-MM-DD): ";
+                cin >> end_date;
+            } while (!MyDate(end_date));
+
+            int total_profit = 0;
+            for (const auto& sale : sales) {
+                if (sale.date_sale >= start_date && sale.date_sale <= end_date) {
+                    total_profit += sale.real_price - sale.total_cost_whan;
+                }
             }
+
+            cout << "Загальний прибуток за період з " << start_date << " по " << end_date << ": " << total_profit << endl;
+            break;
+        }
+        case 0:
+            break;
+        default:
+            cout << "Невірний вибір\n";
+            break;
+        }
     } while (option != 0);
 }
 
@@ -434,7 +460,7 @@ void information() {
 
     while (option_object != '0') {
         cout << "[1] додаємо | [2] видаляємо\nВаш вибір: ";
-        cin >> option_operations; 
+        cin >> option_operations;
         if (option_object == '1')
         {
             if (option_operations == '1')
@@ -476,6 +502,8 @@ void information() {
 void add_workmate()
 {
     Workmate wm;
+    cin.ignore();
+    cout << "ВАЖЛИВО: Не використовуйте пробіли при вводі данних\n";
     cout << "Введіть прізвище: ";
     getline(cin, wm.surname);
     cout << "Введіть ім'я: ";
@@ -489,6 +517,7 @@ void add_workmate()
     cout << "Введіть email: ";
     getline(cin, wm.email);
 
+
     workmates.push_back(wm);
     save();
     cout << "Співробітника додано.\n";
@@ -497,7 +526,7 @@ void add_workmate()
 void add_car()
 {
     Car car;
-    cin.ignore(); 
+    cin.ignore();
     cout << "Введіть назву виробника: ";
     getline(cin, car.brand);
 
@@ -514,10 +543,8 @@ void add_car()
     cout << "Введіть потенційну ціну продажу: ";
     cin >> car.price;
 
-    cars.push_back(car); 
-
-    save(); 
-
+    cars.push_back(car);
+    save();
     cout << "Автомобіль додано.\n";
 }
 
@@ -527,15 +554,19 @@ void add_sale()
 
     for (int i = 0; i < workmates.size(); i++)
     {
-        cout << "[" << i + 1 << "] " << workmates[i].name << " " << workmates[i].surname << " " << workmates[i].father_name << endl;
+        cout << "[" << i + 1 << "] " << workmates[i].surname << " " << workmates[i].name << " " << workmates[i].father_name << endl;
     }
 
     cout << "Виберіть співробітника: \n";
     int workmate_index;
     cin >> workmate_index;
-    sale.person_name = workmates[workmate_index - 1].name;
-    sale.person_surname = workmates[workmate_index - 1].surname;
-    sale.person_father_name = workmates[workmate_index - 1].father_name;
+    workmate_index--;
+
+    sale.person_name = workmates[workmate_index].name;
+    sale.person_surname = workmates[workmate_index].surname;
+    sale.person_father_name = workmates[workmate_index].father_name;
+
+
     cout << "Виберіть автомобіль: \n";
     for (int i = 0; i < cars.size(); i++)
     {
@@ -543,7 +574,11 @@ void add_sale()
     }
     int car_index;
     cin >> car_index;
-    sale.automobile = cars[car_index - 1].model;
+    car_index--;
+
+    sale.automobile = cars[car_index].model;
+
+    sale.total_cost_whan = cars[car_index].cost;
 
     string date;
     do
@@ -681,7 +716,7 @@ void save()
     {
         for (const auto& sale : sales)
         {
-            sales_file << sale.person_surname << " " << sale.person_name << " " << sale.person_father_name << " " << sale.automobile << " " << sale.date_sale << " " << sale.real_price << endl;
+            sales_file << sale.person_surname << " " << sale.person_name << " " << sale.person_father_name << " " << sale.automobile << " " << sale.date_sale << " " << sale.real_price << " " << sale.total_cost_whan << endl;
         }
         sales_file.close();
     }
@@ -749,8 +784,4 @@ bool MyDate(const string& date)
         return false;
     }
     return true;
-}
-
-string FullName(const string& name, const string& surname, const string& father_name) {
-    return name + " " + surname + " " + father_name;
 }
